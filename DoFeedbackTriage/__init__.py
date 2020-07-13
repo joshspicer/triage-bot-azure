@@ -16,10 +16,11 @@ def main(msg: func.QueueMessage) -> None:
 def feedback_triage():
 
     env = os.environ.copy()
-
-    if "SLACK_HOOK" not in env:
-        logging.error("[-] Must export SLACK_HOOK env variable Exiting...")
+    if "SLACK_HOOK" not in env or "FEEDBACK_URL" not in env:
+        logging.error("[-] Must export SLACK_HOOK and FEEDBACK_URL env variable Exiting...")
         exit(1)
+
+    feedback_url = os.environ.get("FEEDBACK_URL")
 
     names = ['Bret',
              'Stephen',
@@ -55,5 +56,5 @@ def feedback_triage():
     logging.info(debug_str)
 
     slack_hook = os.environ.get('SLACK_HOOK')
-    content = f"{assigned_id} is on feedback triage this week.  {onDeck_id} is on deck, and {following} is the following week."
+    content = f"⚠️ *{assigned_id} is on <{feedback_url}|feedback triage> this week.*  {onDeck_id} is on deck, and {following} is the following week."
     r = requests.post(slack_hook, json={"text": content})
