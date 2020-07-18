@@ -8,10 +8,16 @@ import azure.functions as func
 
 def main(mytimer: func.TimerRequest) -> None:
 
+    # Don't run on the weekend (Sat = 5, Sun = 6)
+    weekend = [5, 6]
+    if date.today().weekday() in weekend:
+        logging.info("It's the weekend!")
+        return
+
     if mytimer.past_due:
         logging.info('The timer is past due!')
 
-    logging.info('Python timer trigger function ran at')
+    logging.info('Python timer trigger function ran.')
 
     pr_reminder()
 
