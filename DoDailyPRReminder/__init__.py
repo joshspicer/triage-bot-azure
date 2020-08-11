@@ -1,10 +1,11 @@
 import logging
-from github import Github 
+from github import Github
 from datetime import date
 import os
 import requests
 
 import azure.functions as func
+
 
 def main(mytimer: func.TimerRequest) -> None:
 
@@ -21,6 +22,7 @@ def main(mytimer: func.TimerRequest) -> None:
 
     pr_reminder()
 
+
 def pr_reminder():
 
     env = os.environ.copy()
@@ -33,24 +35,25 @@ def pr_reminder():
 
     DAYS_OLD_LIMIT = 50
 
-    REPOS = ["xamarin/designer", "xamarin/babyshark"]
+    REPOS = ["xamarin/designer", "xamarin/babyshark",
+             "xamarin/ios-sim-sharp", "xamarin/Xamarin.PropertyEditing"]
 
     team = {
-            'Bret' :     ('<@U1A0AGACW>', "BretJohnson"),
-            'Stephen':   ('<@U03CEGTKL>', "decriptor"),
-            'Josh':      ('<@UV2KCSKD1>', "joshspicer"),
-            'Jérémie':   ('<@U03CFD02U>', "garuma"),
-            'Dominique': ('<@U03CDPF7K>', "CartBlanche"),
-            'Michael' :  ('<@UKWB26ECB>', "mcumming")
-            }
-            
+        'Bret':     ('<@U1A0AGACW>', "BretJohnson"),
+        'Stephen':   ('<@U03CEGTKL>', "decriptor"),
+        'Josh':      ('<@UV2KCSKD1>', "joshspicer"),
+        'Jérémie':   ('<@U03CFD02U>', "garuma"),
+        'Dominique': ('<@U03CDPF7K>', "CartBlanche"),
+        'Michael':  ('<@UKWB26ECB>', "mcumming")
+    }
+
     msg = "⚠️ *PRs Pending Review*\n\n"
     for repo in REPOS:
         p = g.get_repo(repo)
 
         for pull in p.get_pulls():
 
-            pr_num = pull.number 
+            pr_num = pull.number
             pr_name = (pull.title)
             pr_url = pull.html_url
             pr_date = pull.created_at
@@ -59,7 +62,8 @@ def pr_reminder():
             reviewers = [p.login for p in pull.get_review_requests()[0]]
 
             # Only add if member is part of team
-            person = [value[0] for (key, value) in team.items() if value[1] in reviewers]
+            person = [value[0]
+                      for (key, value) in team.items() if value[1] in reviewers]
 
             if (not pr_is_draft and len(person) > 0):
                 slack_ids = ", ".join(person)

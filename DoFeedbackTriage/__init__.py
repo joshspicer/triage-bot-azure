@@ -16,8 +16,9 @@ def main(msg: func.QueueMessage) -> None:
 def feedback_triage():
 
     env = os.environ.copy()
-    if "SLACK_HOOK" not in env or "FEEDBACK_URL" not in env:
-        logging.error("[-] Must export SLACK_HOOK and FEEDBACK_URL env variable Exiting...")
+    if "TEAMS_HOOK" not in env or "FEEDBACK_URL" not in env:
+        logging.error(
+            "[-] Must export TEAMS_HOOK and FEEDBACK_URL env variable Exiting...")
         exit(1)
 
     feedback_url = os.environ.get("FEEDBACK_URL")
@@ -29,17 +30,6 @@ def feedback_triage():
              'Dominique',
              'Michael']
 
-    memberIDs = ['<@U1A0AGACW>',
-                 '<@U03CEGTKL>',
-                 '<@UV2KCSKD1>',
-                 '<@U03CFD02U>',
-                 '<@U03CDPF7K>',
-                 '<@UKWB26ECB>']
-
-    if len(names) != len(memberIDs):
-        logging.error("[-] Names and memberIDs do not match. Exiting...")
-        exit(2)
-
     length = len(names)
     d = date.today()
     week_num = d.isocalendar()[1]
@@ -48,13 +38,39 @@ def feedback_triage():
     onDeck = names[(week_num + 1) % length]
     following = names[(week_num + 2) % length]
 
-    assigned_id = memberIDs[week_num % length]
-    onDeck_id = memberIDs[(week_num + 1) % length]
-    following_id = memberIDs[(week_num + 2) % length]
-
-    debug_str = f"[+] week={week_num}  assignments={assigned}|{assigned_id}, {onDeck}|{onDeck_id}, {following}|{following_id}"
+    debug_str = f"[+] week={week_num}  assignments={assigned}, {onDeck}, {following}"
     logging.info(debug_str)
 
-    slack_hook = os.environ.get('SLACK_HOOK')
-    content = f"⚠️ *{assigned_id} is on <{feedback_url}|feedback triage> this week.*  {onDeck_id} is on deck, and {following} is the following week."
-    r = requests.post(slack_hook, json={"text": content})
+    content = '''
+{{
+"@type": "MessageCard",
+"@context": "http://schema.org/extensions",
+"themeColor": "ff0000",
+"summary": "Feedback Triage Duty!",
+"sections": [{{
+    "activityTitle": "#**Feedback Triage Duty**",
+    "facts": [{{
+        "name": "On Duty",
+        "value": "{0}"
+    }},
+    {{
+        "name": "Next",
+        "value": "{1}"
+    }},
+    {{
+        "name": "Following",
+        "value": "{2}"
+    }}],
+    "markdown": true
+}}],
+"potentialAction": [{{
+    "@type": "OpenUri",
+    "name": "Go to Dashboard",
+    "targets": [
+    {{"os": "default", "uri": "{3}"}}
+    ]}}]
+}}
+'''.format(assigned, onDeck, following, feedback_url)
+
+    teams_hook = os.environ.get('TEAMS_HOOK')
+    r = requests.post(teams_hook, data=content)
