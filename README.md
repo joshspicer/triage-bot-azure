@@ -1,5 +1,5 @@
-# triage-slackbot-azure
-A simple collection of azure functions to send a slackbot messages to our dev team
+# triage-bot-azure
+A simple collection of azure functions to send ~slackbot~ Teams bot messages to our dev team
 
 ## Usage
 
