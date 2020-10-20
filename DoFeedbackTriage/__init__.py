@@ -23,12 +23,11 @@ def feedback_triage():
 
     feedback_url = os.environ.get("FEEDBACK_URL")
 
-    names = ['Bret',
-             'Stephen',
+    names = ['Michael',
              'Josh',
-             'Jérémie',
-             'Dominique',
-             'Michael']
+             'Stephen',
+             'Bret',
+             'Dominique']
 
     length = len(names)
     d = date.today()
@@ -51,7 +50,7 @@ def feedback_triage():
     "activityTitle": "#**Feedback Triage Duty**",
     "facts": [{{
         "name": "On Duty",
-        "value": "{0}"
+        "value": "**{0}**"
     }},
     {{
         "name": "Next",
