@@ -1,10 +1,10 @@
 {
   "azureFunctions.deploySubpath": ".",
   "azureFunctions.scmDoBuildDuringDeployment": true,
-  "azureFunctions.pythonVenv": ".venv",
+  "azureFunctions.pythonVenv": "venv",
   "azureFunctions.projectLanguage": "Python",
   "azureFunctions.projectRuntime": "~2",
   "debug.internalConsoleOptions": "neverOpen",
   "azureFunctions.templateFilter": "All",
-  "python.pythonPath": "/usr/local/bin/python3"
+  "python.pythonPath": "/Users/joshspicer/dev/triage-bot-azure/venv/bin/python3.7"
 }

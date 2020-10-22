@@ -26,8 +26,8 @@ def main(mytimer: func.TimerRequest) -> None:
 def pr_reminder():
 
     env = os.environ.copy()
-    if "SLACK_HOOK" not in env or "GITHUB_TOKEN" not in env:
-        logging.error("[-] Must export SLACK_HOOK and GITHUB_TOKEN variables")
+    if "TEAMS_HOOK" not in env or "GITHUB_TOKEN" not in env:
+        logging.error("[-] Must export TEAMS_HOOK and GITHUB_TOKEN variables")
         exit(1)
 
     ghtoken = os.environ.get("GITHUB_TOKEN")
@@ -35,19 +35,18 @@ def pr_reminder():
 
     DAYS_OLD_LIMIT = 50
 
-    REPOS = ["xamarin/designer", "xamarin/babyshark",
+    REPOS = ["xamarin/uitools",
              "xamarin/ios-sim-sharp", "xamarin/Xamarin.PropertyEditing"]
 
     team = {
-        'Bret':     ('<@U1A0AGACW>', "BretJohnson"),
-        'Stephen':   ('<@U03CEGTKL>', "decriptor"),
-        'Josh':      ('<@UV2KCSKD1>', "joshspicer"),
-        'Jérémie':   ('<@U03CFD02U>', "garuma"),
-        'Dominique': ('<@U03CDPF7K>', "CartBlanche"),
-        'Michael':  ('<@UKWB26ECB>', "mcumming")
+        'Bret':     ('Bret', "BretJohnson"),
+        'Stephen':   ('Stephen', "decriptor"),
+        'Josh':      ('Josh', "joshspicer"),
+        'Dominique': ('Dominique', "CartBlanche"),
+        'Michael':   ('Michael', "mcumming")
     }
 
-    msg = "⚠️ *PRs Pending Review*\n\n"
+    msgs = []
     for repo in REPOS:
         p = g.get_repo(repo)
 
@@ -66,11 +65,56 @@ def pr_reminder():
                       for (key, value) in team.items() if value[1] in reviewers]
 
             if (not pr_is_draft and len(person) > 0):
-                slack_ids = ", ".join(person)
+                reviewer_names = ", ".join(person)
                 days_old = (date.today() - pr_date.date()).days
 
                 if days_old < DAYS_OLD_LIMIT:
-                    msg += f"{slack_ids}!  Your review is requested on <{pr_url}|{pr_name} *(#{pr_num})*>\n"
+                    num_reviewers = len(person)
+                    msgs.append((reviewer_names, pr_url, pr_name, pr_num, num_reviewers))
+                    # msg += f"{reviewer_names}!  Your review is requested on <{pr_url}|{pr_name} *(#{pr_num})*>\n"
 
-    slack_hook = os.environ.get('SLACK_HOOK')
-    requests.post(slack_hook, json={"text": msg})
+    body = ""
+    for idx, msg in enumerate(msgs):
+        is_last_element = idx == len(msgs) - 1
+
+        targets = msg[0] if msg[4] < 3 else f"{msg[4]}+ reviewers"
+
+        body += '''
+        {{
+        "name": "{}",
+        "value": "[{}]({})"
+         }}
+        '''.format(targets, msg[2], msg[1])
+
+        if not is_last_element:
+            body += ","
+
+
+# https://messagecardplayground.azurewebsites.net/
+    content = '''
+{{
+"@type": "MessageCard",
+"@context": "http://schema.org/extensions",
+"themeColor": "ff0000",
+"summary": "PR Bot",
+"sections": [{{
+    "activityTitle": "# ⚠️ **PRs Pending Review** ⚠️",
+    "facts": [{}],
+    "markdown": true
+}}],
+"potentialAction": [{{
+    "@type": "OpenUri",
+    "name": "Go to UITools",
+    "targets": [
+    {{"os": "default", "uri": "https://github.com/xamarin/uitools"}}
+    ]}}]
+}}
+'''.format(body)
+
+    ### logging.info(content)
+
+    teams_hook = os.environ.get('TEAMS_HOOK')
+    r = requests.post(teams_hook, data=content.encode('utf-8'))
+
+    logging.info(r.status_code)
+    logging.info(r.text)
