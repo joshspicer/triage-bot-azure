@@ -7,6 +7,9 @@ import requests
 import azure.functions as func
 
 
+def sanitize(input: str) -> str:
+    return input.replace("\"", "\'") 
+
 def main(mytimer: func.TimerRequest) -> None:
 
     # Don't run on the weekend (Sat = 5, Sun = 6)
@@ -39,13 +42,11 @@ def pr_reminder():
              "xamarin/ios-sim-sharp", "xamarin/Xamarin.PropertyEditing"]
 
     team = {
-        'Bret':     ('Bret', "BretJohnson"),
-        'Stephen':   ('Stephen', "decriptor"),
+        'Michael':   ('Michael', "mcumming"),
         'Josh':      ('Josh', "joshspicer"),
-        'Dominique': ('Dominique', "CartBlanche"),
-        'Michael':   ('Michael', "mcumming")
+        'Stephen':   ('Stephen', "decriptor"),
+        'Bret':      ('Bret', "BretJohnson")
     }
-
     msgs = []
     for repo in REPOS:
         p = g.get_repo(repo)
@@ -78,13 +79,13 @@ def pr_reminder():
         is_last_element = idx == len(msgs) - 1
 
         targets = msg[0] if msg[4] < 3 else f"{msg[4]}+ reviewers"
-
+        
         body += '''
         {{
         "name": "{}",
         "value": "[{}]({})"
          }}
-        '''.format(targets, msg[2], msg[1])
+        '''.format(sanitize(targets), sanitize(msg[2]), sanitize(msg[1]))
 
         if not is_last_element:
             body += ","
@@ -111,10 +112,10 @@ def pr_reminder():
 }}
 '''.format(body)
 
-    ### logging.info(content)
+    # logging.info(content)
 
     teams_hook = os.environ.get('TEAMS_HOOK')
     r = requests.post(teams_hook, data=content.encode('utf-8'))
 
-    logging.info(r.status_code)
+    logging.info(f"Webhook Status: {r.status_code}")
     logging.info(r.text)

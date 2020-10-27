@@ -23,11 +23,12 @@ def feedback_triage():
 
     feedback_url = os.environ.get("FEEDBACK_URL")
 
-    names = ['Michael',
-             'Josh',
-             'Stephen',
-             'Bret',
-             'Dominique']
+    names = [
+        'Michael',
+        'Josh',
+        'Stephen',
+        'Bret'
+        ]
 
     length = len(names)
     d = date.today()
