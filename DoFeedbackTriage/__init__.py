@@ -25,7 +25,6 @@ def feedback_triage():
 
     names = [
         'Michael',
-        'Josh',
         'Stephen',
         'Bret'
         ]
